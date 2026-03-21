@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCRU — The Storybook</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --void: #0a0a0a;
+  --abyss: #050505;
+  --glyph: #a0c8a0;
+  --sigil: #2a7a3a;
+  --flicker: #39ff14;
+  --blood: #1a4a1a;
+  --spectral: rgba(57, 255, 20, 0.03);
+  --page-w: min(90vw, 780px);
+  --page-h: min(75vh, 520px);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--abyss);
+  color: var(--glyph);
+  font-family: 'EB Garamond', serif;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
+}
+
+/* ── BACKGROUND SIGIL FIELD ── */
+.bg-layer {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse at 30% 70%, rgba(26,74,26,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 20%, rgba(42,122,58,0.06) 0%, transparent 50%),
+    var(--abyss);
+}
+
+.bg-layer::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30Z' fill='none' stroke='rgba(57,255,20,0.025)' stroke-width='0.5'/%3E%3C/svg%3E");
+  animation: drift 120s linear infinite;
+}
+
+@keyframes drift {
+  to { background-position: 60px 60px; }
+}
+
+/* Scan line overlay */
+.scanlines {
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+}
+
+/* ── BOOK CONTAINER ── */
+.stage {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+  perspective: 1800px;
+}
+
+.book {
+  position: relative;
+  width: var(--page-w);
+  height: var(--page-h);
+  transform-style: preserve-3d;
+}
+
+/* Book shadow / glow */
+.book::after {
+  content: '';
+  position: absolute;
+  bottom: -25px; left: 5%; right: 5%;
+  height: 50px;
+  background: radial-gradient(ellipse, rgba(57,255,20,0.2), transparent 70%);
+  filter: blur(18px);
+  transition: opacity 0.6s;
+}
+
+.book::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 2px;
+  box-shadow:
+    0 0 15px rgba(57,255,20,0.12),
+    0 0 40px rgba(57,255,20,0.06),
+    inset 0 0 15px rgba(57,255,20,0.04);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── PAGES ── */
+.page {
+  position: absolute;
+  width: 100%; height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+  cursor: pointer;
+}
+
+.page.flipped {
+  transform: rotateY(-180deg);
+}
+
+.page-front, .page-back {
+  position: absolute;
+  width: 100%; height: 100%;
+  backface-visibility: hidden;
+  overflow: hidden;
+  border: 1px solid rgba(200,184,154,0.1);
+}
+
+.page-front {
+  background: #111;
+  z-index: 1;
+}
+
+.page-back {
+  background: #111;
+  transform: rotateY(180deg);
+}
+
+.page-front img, .page-back img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #000;
+}
+
+/* Page edge effect */
+.page-front::after, .page-back::after {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 4px 0 12px rgba(0,0,0,0.5),
+    inset -1px 0 3px rgba(57,255,20,0.04);
+}
+
+.page-back::after {
+  box-shadow:
+    inset -4px 0 12px rgba(0,0,0,0.5),
+    inset 1px 0 3px rgba(57,255,20,0.04);
+}
+
+/* Page stacking depth */
+.page { z-index: 1; }
+
+/* Corner fold hint */
+.page:not(.flipped) .page-front::before {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, transparent 50%, rgba(57,255,20,0.05) 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.page:not(.flipped):hover .page-front::before {
+  opacity: 1;
+}
+
+/* ── COVER DECORATIONS ── */
+.cover-overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cover-border {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(200,184,154,0.15);
+}
+
+.cover-border::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(200,184,154,0.08);
+}
+
+.corner-glyph {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--sigil);
+  opacity: 0.3;
+}
+.corner-glyph.tl { top: 15px; left: 15px; border-top: 1px solid; border-left: 1px solid; }
+.corner-glyph.tr { top: 15px; right: 15px; border-top: 1px solid; border-right: 1px solid; }
+.corner-glyph.bl { bottom: 15px; left: 15px; border-bottom: 1px solid; border-left: 1px solid; }
+.corner-glyph.br { bottom: 15px; right: 15px; border-bottom: 1px solid; border-right: 1px solid; }
+
+/* ── NAVIGATION ── */
+.nav-zone {
+  position: absolute;
+  top: 0; height: 100%;
+  width: 25%;
+  z-index: 50;
+  cursor: pointer;
+  display: flex; align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.nav-zone:hover { opacity: 1; }
+
+.nav-zone.prev { left: -15%; justify-content: flex-end; padding-right: 15px; }
+.nav-zone.next { right: -15%; justify-content: flex-start; padding-left: 15px; }
+
+.nav-arrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 28px;
+  color: var(--sigil);
+  opacity: 0.6;
+  transition: opacity 0.3s, transform 0.3s;
+  text-shadow: 0 0 20px rgba(57,255,20,0.3);
+}
+.nav-zone:hover .nav-arrow {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* ── BOTTOM CONTROLS ── */
+.controls {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex; flex-direction: column; align-items: center;
+  padding-bottom: 20px;
+  background: linear-gradient(0deg, var(--abyss) 40%, transparent);
+}
+
+.page-indicator {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 15px;
+  letter-spacing: 5px;
+  color: var(--flicker);
+  opacity: 0.9;
+  margin-bottom: 12px;
+  text-shadow: 0 0 10px rgba(57,255,20,0.4);
+}
+
+.progress-track {
+  width: min(80vw, 400px);
+  height: 2px;
+  background: rgba(200,184,154,0.1);
+  position: relative;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  position: absolute; top: 0; left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--sigil), var(--flicker));
+  transition: width 0.4s ease;
+}
+
+.progress-dot {
+  position: absolute; top: 50%;
+  width: 8px; height: 8px;
+  background: var(--flicker);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 0.4s ease;
+  box-shadow: 0 0 10px rgba(57,255,20,0.5);
+}
+
+.thumbnails {
+  display: flex; gap: 3px;
+  overflow-x: auto;
+  max-width: 90vw;
+  padding: 4px 0;
+  scrollbar-width: none;
+}
+.thumbnails::-webkit-scrollbar { display: none; }
+
+.thumb {
+  flex-shrink: 0;
+  width: 28px; height: 38px;
+  border: 1px solid rgba(200,184,154,0.15);
+  opacity: 0.4;
+  cursor: pointer;
+  transition: all 0.3s;
+  overflow: hidden;
+  background: #111;
+}
+.thumb:hover { opacity: 0.8; border-color: var(--sigil); }
+.thumb.active {
+  opacity: 1;
+  border-color: var(--flicker);
+  box-shadow: 0 0 8px rgba(57,255,20,0.3);
+}
+.thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* ── AMBIENT PARTICLES ── */
+.particles {
+  position: fixed; inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: var(--glyph);
+  border-radius: 50%;
+  opacity: 0;
+  animation: float-up linear infinite;
+}
+
+@keyframes float-up {
+  0% { opacity: 0; transform: translateY(100vh) scale(0); }
+  10% { opacity: 0.3; }
+  90% { opacity: 0.1; }
+  100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+}
+
+/* ── FULLSCREEN TOGGLE ── */
+.fs-btn {
+  position: fixed; top: 15px; right: 20px;
+  z-index: 200;
+  background: none; border: 1px solid rgba(57,255,20,0.2);
+  color: #39ff14;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  padding: 6px 12px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: all 0.3s;
+}
+.fs-btn:hover {
+  opacity: 1;
+  border-color: var(--flicker);
+  box-shadow: 0 0 15px rgba(57,255,20,0.15);
+}
+
+/* ── KEYBOARD HINT ── */
+.key-hint {
+  position: fixed; bottom: 8px; right: 15px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--sigil);
+  opacity: 0.25;
+  letter-spacing: 2px;
+  z-index: 100;
+}
+
+/* ── PAGE TURN SOUND VISUAL FEEDBACK ── */
+@keyframes page-flash {
+  0% { box-shadow: inset 0 0 30px rgba(57,255,20,0.08); }
+  100% { box-shadow: inset 0 0 0 transparent; }
+}
+
+.page.turning .page-front {
+  animation: page-flash 0.4s ease-out;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  :root {
+    --page-w: 92vw;
+    --page-h: 70vh;
+  }
+  .nav-zone { width: 20%; }
+  .nav-zone.prev { left: -5%; }
+  .nav-zone.next { right: -5%; }
+  .header h1 { font-size: 10px; letter-spacing: 5px; }
+  .thumbnails { display: none; }
+  .key-hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="scanlines"></div>
+
+<div class="particles" id="particles"></div>
+
+<button class="fs-btn" onclick="toggleFS()">EXPAND</button>
+
+<div class="stage">
+  <div class="book" id="book"></div>
+
+  <div class="nav-zone prev" onclick="prevPage()">
+    <div class="nav-arrow">◂</div>
+  </div>
+  <div class="nav-zone next" onclick="nextPage()">
+    <div class="nav-arrow">▸</div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="page-indicator" id="pageNum">01 / 31</div>
+  <div class="progress-track" id="progressTrack" onclick="handleProgressClick(event)">
+    <div class="progress-fill" id="progressFill"></div>
+    <div class="progress-dot" id="progressDot"></div>
+  </div>
+  <div class="thumbnails" id="thumbs"></div>
+</div>
+
+<div class="key-hint">← → ARROWS · SPACE</div>
+
+<script>
+const TOTAL_PAGES = 31; // 0.png to 30.png
+const IMAGE_PATH = './pages/'; // ← put your images in a "pages" folder
+
+let currentPage = 0;
+const book = document.getElementById('book');
+const thumbsContainer = document.getElementById('thumbs');
+
+// ── BUILD PAGES ──
+// Each "physical page" has a front and back
+// We pair images: page 0 has front=img0, back=img1; page 1 has front=img2, back=img3...
+// But for a single-page-view flip book, each flip reveals one new image.
+// Simpler model: each "leaf" shows one image on front. Flipping reveals the next.
+
+function buildBook() {
+  for (let i = 0; i < TOTAL_PAGES; i++) {
+    // Create page (leaf)
+    const page = document.createElement('div');
+    page.className = 'page';
+    page.style.zIndex = TOTAL_PAGES - i;
+    page.dataset.index = i;
+
+    // Front face — shows image i
+    const front = document.createElement('div');
+    front.className = 'page-front';
+    const imgF = document.createElement('img');
+    imgF.src = `${IMAGE_PATH}${i}.png`;
+    imgF.alt = `Page ${i + 1}`;
+    imgF.loading = i < 3 ? 'eager' : 'lazy';
+    imgF.draggable = false;
+    front.appendChild(imgF);
+
+    // Add cover decoration to first page
+    if (i === 0) {
+      const overlay = document.createElement('div');
+      overlay.className = 'cover-overlay';
+      overlay.innerHTML = `
+        <div class="cover-border"></div>
+        <div class="corner-glyph tl"></div>
+        <div class="corner-glyph tr"></div>
+        <div class="corner-glyph bl"></div>
+        <div class="corner-glyph br"></div>
+      `;
+      front.appendChild(overlay);
+    }
+
+    // Back face — blank dark (the back of this leaf)
+    const back = document.createElement('div');
+    back.className = 'page-back';
+    // Back shows a subtle texture
+    back.innerHTML = '<div style="width:100%;height:100%;background:linear-gradient(135deg,#0e0e0e,#131313);"></div>';
+
+    page.appendChild(front);
+    page.appendChild(back);
+    book.appendChild(page);
+
+    // Click to flip
+    page.addEventListener('click', (e) => {
+      const idx = parseInt(page.dataset.index);
+      if (idx === currentPage) {
+        nextPage();
+      }
+    });
+
+    // Build thumbnail
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb' + (i === 0 ? ' active' : '');
+    thumb.dataset.index = i;
+    const thumbImg = document.createElement('img');
+    thumbImg.src = `${IMAGE_PATH}${i}.png`;
+    thumbImg.loading = 'lazy';
+    thumbImg.draggable = false;
+    thumb.appendChild(thumbImg);
+    thumb.addEventListener('click', () => goToPage(i));
+    thumbsContainer.appendChild(thumb);
+  }
+}
+
+function updateDisplay() {
+  const pages = document.querySelectorAll('.page');
+  pages.forEach((p, i) => {
+    if (i < currentPage) {
+      p.classList.add('flipped');
+      p.style.zIndex = i;
+    } else {
+      p.classList.remove('flipped');
+      p.style.zIndex = TOTAL_PAGES - i;
+    }
+  });
+
+  // Page number
+  document.getElementById('pageNum').textContent =
+    `${String(currentPage + 1).padStart(2, '0')} / ${TOTAL_PAGES}`;
+
+  // Progress
+  const pct = (currentPage / (TOTAL_PAGES - 1)) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressDot').style.left = pct + '%';
+
+  // Thumbnails
+  document.querySelectorAll('.thumb').forEach((t, i) => {
+    t.classList.toggle('active', i === currentPage);
+    if (i === currentPage) {
+      t.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  });
+}
+
+function nextPage() {
+  if (currentPage < TOTAL_PAGES - 1) {
+    const page = document.querySelectorAll('.page')[currentPage];
+    page.classList.add('turning');
+    setTimeout(() => page.classList.remove('turning'), 400);
+    currentPage++;
+    updateDisplay();
+  }
+}
+
+function prevPage() {
+  if (currentPage > 0) {
+    currentPage--;
+    updateDisplay();
+  }
+}
+
+function goToPage(idx) {
+  if (idx >= 0 && idx < TOTAL_PAGES) {
+    currentPage = idx;
+    updateDisplay();
+  }
+}
+
+function handleProgressClick(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  const page = Math.round(pct * (TOTAL_PAGES - 1));
+  goToPage(page);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextPage(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevPage(); }
+  if (e.key === 'Home') { e.preventDefault(); goToPage(0); }
+  if (e.key === 'End') { e.preventDefault(); goToPage(TOTAL_PAGES - 1); }
+});
+
+// ── TOUCH / SWIPE ──
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) {
+    if (dx < 0) nextPage();
+    else prevPage();
+  }
+}, { passive: true });
+
+// ── PARTICLES ──
+function spawnParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (12 + Math.random() * 20) + 's';
+    p.style.animationDelay = (Math.random() * 15) + 's';
+    p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+    container.appendChild(p);
+  }
+}
+
+// ── FULLSCREEN ──
+function toggleFS() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// ── INIT ──
+buildBook();
+spawnParticles();
+updateDisplay();
+</script>
+
+</body>
+</html>
