@@ -7,9 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 @font-face {
-  font-family: 'DSEG7';
-  src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff') format('woff');
+  font-family: 'DSEG14';
+  src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG14-Classic/DSEG14Classic-Bold.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG14-Classic/DSEG14Classic-Bold.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
@@ -181,7 +181,7 @@ html, body {
 }
 
 .page-indicator {
-  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-family: 'DSEG14', 'Share Tech Mono', monospace;
   font-size: 16px;
   letter-spacing: 4px;
   color: var(--flicker);
@@ -276,7 +276,7 @@ html, body {
   z-index: 200;
   background: none; border: 1px solid rgba(57,255,20,0.2);
   color: #39ff14;
-  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-family: 'DSEG14', 'Share Tech Mono', monospace;
   font-size: 10px;
   letter-spacing: 3px;
   padding: 6px 12px;
@@ -293,7 +293,7 @@ html, body {
 /* ── KEYBOARD HINT (desktop only) ── */
 .key-hint {
   position: fixed; bottom: 8px; right: 15px;
-  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-family: 'DSEG14', 'Share Tech Mono', monospace;
   font-size: 9px;
   color: var(--sigil);
   opacity: 0.25;
@@ -350,7 +350,7 @@ html, body {
   100% { opacity: 1; transform: translateX(5px); }
 }
 .mobile-hint-text {
-  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-family: 'DSEG14', 'Share Tech Mono', monospace;
   font-size: 13px;
   color: var(--flicker);
   text-align: center;
@@ -359,7 +359,7 @@ html, body {
   text-shadow: 0 0 12px rgba(57,255,20,0.4);
 }
 .mobile-hint-dismiss {
-  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-family: 'DSEG14', 'Share Tech Mono', monospace;
   font-size: 11px;
   color: var(--flicker);
   background: none;
@@ -459,7 +459,7 @@ html, body {
     <div class="arrow-hint">▸</div>
   </div>
   <div class="mobile-hint-text" id="hintText">
-    TAP ON THE SIDES<br>OF THE PAGES<br>TO TURN PAGES
+    TAP ON THE SIDES<br>TO TURN PAGES
   </div>
   <button class="mobile-hint-dismiss" id="dismissHint">OK</button>
 </div>
@@ -515,11 +515,7 @@ function isMobile() {
 function showHint() {
   const hint = document.getElementById('mobileHint');
   const hintText = document.getElementById('hintText');
-  if (isMobile()) {
-    hintText.innerHTML = 'TAP ON THE SIDES<br>OF THE PAGES<br>TO TURN PAGES';
-  } else {
-    hintText.innerHTML = 'USE THE ARROWS<br>OR KEYBOARD ← →<br>TO TURN PAGES';
-  }
+  hintText.innerHTML = 'TAP ON THE SIDES<br>TO TURN PAGES';
   setTimeout(() => { hint.classList.add('visible'); }, 300);
 }
 
