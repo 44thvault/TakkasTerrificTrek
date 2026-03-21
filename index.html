@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CCRU — The Storybook</title>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Segment7Standard&display=swap');
 @font-face {
   font-family: 'DSEG7';
   src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2'),
@@ -23,14 +22,11 @@
   --sigil: #2a7a3a;
   --flicker: #39ff14;
   --blood: #1a4a1a;
-  --spectral: rgba(57, 255, 20, 0.03);
-  --page-w: min(90vw, 780px);
-  --page-h: min(75vh, 520px);
 }
 
 html, body {
   width: 100%; height: 100%;
-  background: var(--abyss);
+  background: #000;
   color: var(--glyph);
   font-family: 'EB Garamond', serif;
   overflow: hidden;
@@ -38,18 +34,10 @@ html, body {
   user-select: none;
 }
 
-/* ── BACKGROUND SIGIL FIELD ── */
+/* ── BACKGROUND ── */
 .bg-layer {
   position: fixed; inset: 0; z-index: 0;
   background: #000000;
-}
-
-.bg-layer::before {
-  display: none;
-}
-
-@keyframes drift {
-  to { background-position: 60px 60px; }
 }
 
 /* Scan line overlay */
@@ -65,7 +53,7 @@ html, body {
   );
 }
 
-/* ── BOOK CONTAINER ── */
+/* ── STAGE ── */
 .stage {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -73,14 +61,14 @@ html, body {
   perspective: 1800px;
 }
 
+/* Book uses 3:2 aspect ratio to match 1536x1024 */
 .book {
   position: relative;
-  width: var(--page-w);
-  height: var(--page-h);
+  width: min(80vw, calc(min(70vh, 520px) * 1.5));
+  height: min(70vh, 520px);
   transform-style: preserve-3d;
+  aspect-ratio: 3 / 2;
 }
-
-/* Book — no glow, clean edges */
 
 /* ── PAGES ── */
 .page {
@@ -101,16 +89,15 @@ html, body {
   width: 100%; height: 100%;
   backface-visibility: hidden;
   overflow: hidden;
-  border: 1px solid rgba(200,184,154,0.1);
 }
 
 .page-front {
-  background: #111;
+  background: #000;
   z-index: 1;
 }
 
 .page-back {
-  background: #111;
+  background: #000;
   transform: rotateY(180deg);
 }
 
@@ -121,97 +108,61 @@ html, body {
   background: #000;
 }
 
-/* Page edge effect */
-.page-front::after, .page-back::after {
-  content: '';
-  position: absolute; inset: 0;
-  pointer-events: none;
-  box-shadow:
-    inset 4px 0 12px rgba(0,0,0,0.5),
-    inset -1px 0 3px rgba(57,255,20,0.04);
-}
-
-.page-back::after {
-  box-shadow:
-    inset -4px 0 12px rgba(0,0,0,0.5),
-    inset 1px 0 3px rgba(57,255,20,0.04);
-}
-
-/* Page stacking depth */
 .page { z-index: 1; }
 
-/* Corner fold hint */
-.page:not(.flipped) .page-front::before {
-  content: '';
-  position: absolute;
-  bottom: 0; right: 0;
-  width: 30px; height: 30px;
-  background: linear-gradient(135deg, transparent 50%, rgba(57,255,20,0.05) 50%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.page:not(.flipped):hover .page-front::before {
-  opacity: 1;
-}
-
-/* ── COVER DECORATIONS ── */
-.cover-overlay {
-  position: absolute; inset: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.cover-border {
-  position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(200,184,154,0.15);
-}
-
-.cover-border::before {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  border: 1px solid rgba(200,184,154,0.08);
-}
-
-.corner-glyph {
-  position: absolute;
-  width: 20px; height: 20px;
-  border-color: var(--sigil);
-  opacity: 0.3;
-}
-.corner-glyph.tl { top: 15px; left: 15px; border-top: 1px solid; border-left: 1px solid; }
-.corner-glyph.tr { top: 15px; right: 15px; border-top: 1px solid; border-right: 1px solid; }
-.corner-glyph.bl { bottom: 15px; left: 15px; border-bottom: 1px solid; border-left: 1px solid; }
-.corner-glyph.br { bottom: 15px; right: 15px; border-bottom: 1px solid; border-right: 1px solid; }
-
-/* ── NAVIGATION ── */
-.nav-zone {
+/* ── MOBILE TAP ZONES (inside the book, over the pages) ── */
+.tap-zone {
+  display: none;
   position: absolute;
   top: 0; height: 100%;
-  width: 25%;
-  z-index: 50;
+  width: 35%;
+  z-index: 60;
   cursor: pointer;
-  display: flex; align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s;
+  -webkit-tap-highlight-color: transparent;
 }
-.nav-zone:hover { opacity: 1; }
+.tap-zone.prev { left: 0; }
+.tap-zone.next { right: 0; }
+.tap-zone:active {
+  background: rgba(57,255,20,0.04);
+}
 
-.nav-zone.prev { left: -15%; justify-content: flex-end; padding-right: 15px; }
-.nav-zone.next { right: -15%; justify-content: flex-start; padding-left: 15px; }
-
-.nav-arrow {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 28px;
-  color: var(--sigil);
+/* ── DESKTOP NAV BUTTONS ── */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  width: 48px; height: 48px;
+  background: transparent;
+  border: 1px solid rgba(57,255,20,0.25);
+  border-radius: 4px;
+  color: var(--flicker);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
   opacity: 0.6;
-  transition: opacity 0.3s, transform 0.3s;
-  text-shadow: 0 0 20px rgba(57,255,20,0.3);
+  transition: all 0.25s ease;
 }
-.nav-zone:hover .nav-arrow {
+.nav-btn:hover {
   opacity: 1;
-  transform: scale(1.2);
+  border-color: var(--flicker);
+  background: rgba(57,255,20,0.06);
+  box-shadow: 0 0 20px rgba(57,255,20,0.15);
+}
+.nav-btn:active {
+  transform: translateY(-50%) scale(0.95);
+  background: rgba(57,255,20,0.1);
+}
+.nav-btn.prev-btn { left: -70px; }
+.nav-btn.next-btn { right: -70px; }
+
+.nav-btn svg {
+  width: 20px; height: 20px;
+  stroke: var(--flicker);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ── BOTTOM CONTROLS ── */
@@ -221,7 +172,7 @@ html, body {
   z-index: 100;
   display: flex; flex-direction: column; align-items: center;
   padding-bottom: 20px;
-  background: linear-gradient(0deg, var(--abyss) 40%, transparent);
+  background: linear-gradient(0deg, #000 40%, transparent);
 }
 
 .page-indicator {
@@ -237,7 +188,7 @@ html, body {
 .progress-track {
   width: min(80vw, 400px);
   height: 2px;
-  background: rgba(200,184,154,0.1);
+  background: rgba(57,255,20,0.1);
   position: relative;
   cursor: pointer;
   margin-bottom: 12px;
@@ -271,13 +222,13 @@ html, body {
 
 .thumb {
   flex-shrink: 0;
-  width: 28px; height: 38px;
-  border: 1px solid rgba(200,184,154,0.15);
+  width: 36px; height: 24px;
+  border: 1px solid rgba(57,255,20,0.15);
   opacity: 0.4;
   cursor: pointer;
   transition: all 0.3s;
   overflow: hidden;
-  background: #111;
+  background: #000;
 }
 .thumb:hover { opacity: 0.8; border-color: var(--sigil); }
 .thumb.active {
@@ -334,7 +285,7 @@ html, body {
   box-shadow: 0 0 15px rgba(57,255,20,0.15);
 }
 
-/* ── KEYBOARD HINT ── */
+/* ── KEYBOARD HINT (desktop only) ── */
 .key-hint {
   position: fixed; bottom: 8px; right: 15px;
   font-family: 'DSEG7', 'Share Tech Mono', monospace;
@@ -345,28 +296,150 @@ html, body {
   z-index: 100;
 }
 
-/* ── PAGE TURN SOUND VISUAL FEEDBACK ── */
+/* ── PAGE TURN FLASH ── */
 @keyframes page-flash {
   0% { box-shadow: inset 0 0 30px rgba(57,255,20,0.08); }
   100% { box-shadow: inset 0 0 0 transparent; }
 }
-
 .page.turning .page-front {
   animation: page-flash 0.4s ease-out;
 }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 600px) {
-  :root {
-    --page-w: 92vw;
-    --page-h: 70vh;
+/* ── MOBILE POPUP HINT ── */
+.mobile-hint {
+  display: none;
+  position: fixed; inset: 0;
+  z-index: 20000;
+  background: rgba(0,0,0,0.92);
+  align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 24px;
+  padding: 30px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.mobile-hint.visible {
+  opacity: 1;
+}
+.mobile-hint-icon {
+  display: flex; gap: 30px; align-items: center;
+}
+.mobile-hint-icon .arrow-hint {
+  font-size: 32px;
+  color: var(--flicker);
+  opacity: 0.6;
+  animation: hint-pulse 1.5s ease-in-out infinite alternate;
+}
+.mobile-hint-icon .arrow-hint:first-child {
+  animation-direction: alternate-reverse;
+}
+.mobile-hint-icon .page-icon {
+  width: 60px; height: 40px;
+  border: 1px solid rgba(57,255,20,0.4);
+  border-radius: 3px;
+}
+@keyframes hint-pulse {
+  0% { opacity: 0.3; transform: translateX(0); }
+  100% { opacity: 1; transform: translateX(5px); }
+}
+.mobile-hint-text {
+  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--flicker);
+  text-align: center;
+  letter-spacing: 2px;
+  line-height: 1.8;
+  text-shadow: 0 0 12px rgba(57,255,20,0.4);
+}
+.mobile-hint-dismiss {
+  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--flicker);
+  background: none;
+  border: 1px solid rgba(57,255,20,0.3);
+  padding: 10px 28px;
+  cursor: pointer;
+  letter-spacing: 3px;
+  opacity: 0.8;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+.mobile-hint-dismiss:active {
+  background: rgba(57,255,20,0.1);
+}
+
+/* ══════════════════════════════════
+   RESPONSIVE — MOBILE
+   ══════════════════════════════════ */
+@media (max-width: 768px) {
+  .book {
+    width: 96vw;
+    height: calc(96vw / 1.5);
+    max-height: 58vh;
+    max-width: calc(58vh * 1.5);
   }
-  .nav-zone { width: 20%; }
-  .nav-zone.prev { left: -5%; }
-  .nav-zone.next { right: -5%; }
-  .header h1 { font-size: 10px; letter-spacing: 5px; }
+
+  .tap-zone { display: block; }
+  .nav-btn { display: none; }
   .thumbnails { display: none; }
   .key-hint { display: none; }
+
+  .page-indicator {
+    font-size: 13px;
+    letter-spacing: 3px;
+  }
+
+  .fs-btn {
+    font-size: 8px;
+    padding: 5px 10px;
+    top: 10px; right: 10px;
+  }
+
+  .controls {
+    padding-bottom: 15px;
+  }
+
+  .progress-track {
+    width: 70vw;
+  }
+
+  .mobile-hint {
+    display: flex;
+  }
+}
+
+@media (max-width: 400px) {
+  .book {
+    width: 98vw;
+    height: calc(98vw / 1.5);
+    max-height: 55vh;
+    max-width: calc(55vh * 1.5);
+  }
+  .page-indicator { font-size: 11px; }
+  .mobile-hint-text { font-size: 11px; }
+}
+
+@media (min-width: 1200px) {
+  .book {
+    width: min(75vw, calc(min(75vh, 600px) * 1.5));
+    height: min(75vh, 600px);
+  }
+  .nav-btn.prev-btn { left: -80px; }
+  .nav-btn.next-btn { right: -80px; }
+  .nav-btn { width: 52px; height: 52px; }
+  .nav-btn svg { width: 22px; height: 22px; }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .book {
+    height: 78vh;
+    width: calc(78vh * 1.5);
+    max-width: 95vw;
+    max-height: calc(95vw / 1.5);
+  }
+  .controls { padding-bottom: 6px; }
+  .page-indicator { font-size: 11px; margin-bottom: 4px; }
+  .progress-track { margin-bottom: 4px; }
 }
 </style>
 </head>
@@ -374,20 +447,37 @@ html, body {
 
 <div class="bg-layer"></div>
 <div class="scanlines"></div>
-
 <div class="particles" id="particles"></div>
+
+<!-- Mobile hint popup -->
+<div class="mobile-hint" id="mobileHint">
+  <div class="mobile-hint-icon">
+    <div class="arrow-hint">◂</div>
+    <div class="page-icon"></div>
+    <div class="arrow-hint">▸</div>
+  </div>
+  <div class="mobile-hint-text">
+    TAP ON THE SIDES<br>OF THE PAGES<br>TO TURN PAGES
+  </div>
+  <button class="mobile-hint-dismiss" id="dismissHint">OK</button>
+</div>
 
 <button class="fs-btn" onclick="toggleFS()">EXPAND</button>
 
 <div class="stage">
-  <div class="book" id="book"></div>
+  <div class="book" id="book">
+    <!-- Mobile tap zones (inside the book, overlay on pages) -->
+    <div class="tap-zone prev" id="tapPrev"></div>
+    <div class="tap-zone next" id="tapNext"></div>
+  </div>
 
-  <div class="nav-zone prev" onclick="prevPage()">
-    <div class="nav-arrow">◂</div>
-  </div>
-  <div class="nav-zone next" onclick="nextPage()">
-    <div class="nav-arrow">▸</div>
-  </div>
+  <!-- Desktop nav buttons flanking the book -->
+  <button class="nav-btn prev-btn" onclick="prevPage()" aria-label="Previous page">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </button>
+  <button class="nav-btn next-btn" onclick="nextPage()" aria-label="Next page">
+    <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
+  </button>
 </div>
 
 <div class="controls">
@@ -402,28 +492,56 @@ html, body {
 <div class="key-hint">← → ARROWS · SPACE</div>
 
 <script>
-const TOTAL_PAGES = 31; // 0.png to 30.png
-const IMAGE_PATH = './pages/'; // ← put your images in a "pages" folder
+const TOTAL_PAGES = 31;
+const IMAGE_PATH = './pages/';
 
 let currentPage = 0;
+let isAnimating = false;
+const FLIP_DURATION = 800;
 const book = document.getElementById('book');
 const thumbsContainer = document.getElementById('thumbs');
 
-// ── BUILD PAGES ──
-// Each "physical page" has a front and back
-// We pair images: page 0 has front=img0, back=img1; page 1 has front=img2, back=img3...
-// But for a single-page-view flip book, each flip reveals one new image.
-// Simpler model: each "leaf" shows one image on front. Flipping reveals the next.
+// ── MOBILE DETECTION & HINT ──
+function isMobile() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
 
+function showMobileHint() {
+  if (!isMobile()) return;
+  const hint = document.getElementById('mobileHint');
+  setTimeout(() => { hint.classList.add('visible'); }, 300);
+}
+
+document.getElementById('dismissHint').addEventListener('click', () => {
+  const hint = document.getElementById('mobileHint');
+  hint.classList.remove('visible');
+  setTimeout(() => { hint.style.display = 'none'; }, 400);
+});
+
+document.getElementById('mobileHint').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('dismissHint').click();
+  }
+});
+
+// ── MOBILE TAP ZONES ──
+document.getElementById('tapPrev').addEventListener('click', (e) => {
+  e.stopPropagation();
+  prevPage();
+});
+document.getElementById('tapNext').addEventListener('click', (e) => {
+  e.stopPropagation();
+  nextPage();
+});
+
+// ── BUILD PAGES ──
 function buildBook() {
   for (let i = 0; i < TOTAL_PAGES; i++) {
-    // Create page (leaf)
     const page = document.createElement('div');
     page.className = 'page';
     page.style.zIndex = TOTAL_PAGES - i;
     page.dataset.index = i;
 
-    // Front face — shows image i
     const front = document.createElement('div');
     front.className = 'page-front';
     const imgF = document.createElement('img');
@@ -433,39 +551,22 @@ function buildBook() {
     imgF.draggable = false;
     front.appendChild(imgF);
 
-    // Add cover decoration to first page
-    if (i === 0) {
-      const overlay = document.createElement('div');
-      overlay.className = 'cover-overlay';
-      overlay.innerHTML = `
-        <div class="cover-border"></div>
-        <div class="corner-glyph tl"></div>
-        <div class="corner-glyph tr"></div>
-        <div class="corner-glyph bl"></div>
-        <div class="corner-glyph br"></div>
-      `;
-      front.appendChild(overlay);
-    }
-
-    // Back face — blank dark (the back of this leaf)
     const back = document.createElement('div');
     back.className = 'page-back';
-    // Back shows a subtle texture
-    back.innerHTML = '<div style="width:100%;height:100%;background:linear-gradient(135deg,#0e0e0e,#131313);"></div>';
+    back.innerHTML = '<div style="width:100%;height:100%;background:#000;"></div>';
 
     page.appendChild(front);
     page.appendChild(back);
     book.appendChild(page);
 
-    // Click to flip
+    // Desktop only: click page to go forward
     page.addEventListener('click', (e) => {
+      if (isMobile()) return;
       const idx = parseInt(page.dataset.index);
-      if (idx === currentPage) {
-        nextPage();
-      }
+      if (idx === currentPage) nextPage();
     });
 
-    // Build thumbnail
+    // Thumbnail
     const thumb = document.createElement('div');
     thumb.className = 'thumb' + (i === 0 ? ' active' : '');
     thumb.dataset.index = i;
@@ -484,7 +585,6 @@ function updateDisplay(flippingIdx) {
   pages.forEach((p, i) => {
     if (i < currentPage) {
       p.classList.add('flipped');
-      // The page that's currently animating its flip stays on top
       if (i === flippingIdx) {
         p.style.zIndex = TOTAL_PAGES + 1;
       } else {
@@ -496,16 +596,13 @@ function updateDisplay(flippingIdx) {
     }
   });
 
-  // Page number
   document.getElementById('pageNum').textContent =
     `${String(currentPage + 1).padStart(2, '0')} / ${TOTAL_PAGES}`;
 
-  // Progress
   const pct = (currentPage / (TOTAL_PAGES - 1)) * 100;
   document.getElementById('progressFill').style.width = pct + '%';
   document.getElementById('progressDot').style.left = pct + '%';
 
-  // Thumbnails
   document.querySelectorAll('.thumb').forEach((t, i) => {
     t.classList.toggle('active', i === currentPage);
     if (i === currentPage) {
@@ -514,25 +611,16 @@ function updateDisplay(flippingIdx) {
   });
 }
 
-let isAnimating = false;
-const FLIP_DURATION = 800;
-
 function nextPage() {
   if (currentPage < TOTAL_PAGES - 1 && !isAnimating) {
     isAnimating = true;
     const flippingIdx = currentPage;
     const page = document.querySelectorAll('.page')[flippingIdx];
     page.classList.add('turning');
-
-    // Flip this page but keep it on top during animation
     page.classList.add('flipped');
     page.style.zIndex = TOTAL_PAGES + 1;
-
     currentPage++;
-
-    // Update UI (page number, progress, thumbs) but pass flippingIdx so it stays on top
     updateDisplay(flippingIdx);
-
     setTimeout(() => {
       page.classList.remove('turning');
       page.style.zIndex = flippingIdx;
@@ -546,11 +634,8 @@ function prevPage() {
     isAnimating = true;
     currentPage--;
     const page = document.querySelectorAll('.page')[currentPage];
-
-    // Keep it on top while it flips back
     page.style.zIndex = TOTAL_PAGES + 1;
     updateDisplay();
-
     setTimeout(() => {
       page.style.zIndex = TOTAL_PAGES - currentPage;
       isAnimating = false;
@@ -580,15 +665,18 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'End') { e.preventDefault(); goToPage(TOTAL_PAGES - 1); }
 });
 
-// ── TOUCH / SWIPE ──
+// ── TOUCH SWIPE (backup alongside tap zones) ──
 let touchStartX = 0;
+let touchStartY = 0;
 document.addEventListener('touchstart', (e) => {
   touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
 }, { passive: true });
 
 document.addEventListener('touchend', (e) => {
   const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 50) {
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
     if (dx < 0) nextPage();
     else prevPage();
   }
@@ -621,6 +709,7 @@ function toggleFS() {
 buildBook();
 spawnParticles();
 updateDisplay();
+showMobileHint();
 </script>
 
 </body>
