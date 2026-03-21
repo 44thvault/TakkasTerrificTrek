@@ -499,12 +499,17 @@ function buildBook() {
   }
 }
 
-function updateDisplay() {
+function updateDisplay(flippingIdx) {
   const pages = document.querySelectorAll('.page');
   pages.forEach((p, i) => {
     if (i < currentPage) {
       p.classList.add('flipped');
-      p.style.zIndex = i;
+      // The page that's currently animating its flip stays on top
+      if (i === flippingIdx) {
+        p.style.zIndex = TOTAL_PAGES + 1;
+      } else {
+        p.style.zIndex = i;
+      }
     } else {
       p.classList.remove('flipped');
       p.style.zIndex = TOTAL_PAGES - i;
@@ -529,25 +534,52 @@ function updateDisplay() {
   });
 }
 
+let isAnimating = false;
+const FLIP_DURATION = 800;
+
 function nextPage() {
-  if (currentPage < TOTAL_PAGES - 1) {
-    const page = document.querySelectorAll('.page')[currentPage];
+  if (currentPage < TOTAL_PAGES - 1 && !isAnimating) {
+    isAnimating = true;
+    const flippingIdx = currentPage;
+    const page = document.querySelectorAll('.page')[flippingIdx];
     page.classList.add('turning');
-    setTimeout(() => page.classList.remove('turning'), 400);
+
+    // Flip this page but keep it on top during animation
+    page.classList.add('flipped');
+    page.style.zIndex = TOTAL_PAGES + 1;
+
     currentPage++;
-    updateDisplay();
+
+    // Update UI (page number, progress, thumbs) but pass flippingIdx so it stays on top
+    updateDisplay(flippingIdx);
+
+    setTimeout(() => {
+      page.classList.remove('turning');
+      page.style.zIndex = flippingIdx;
+      isAnimating = false;
+    }, FLIP_DURATION);
   }
 }
 
 function prevPage() {
-  if (currentPage > 0) {
+  if (currentPage > 0 && !isAnimating) {
+    isAnimating = true;
     currentPage--;
+    const page = document.querySelectorAll('.page')[currentPage];
+
+    // Keep it on top while it flips back
+    page.style.zIndex = TOTAL_PAGES + 1;
     updateDisplay();
+
+    setTimeout(() => {
+      page.style.zIndex = TOTAL_PAGES - currentPage;
+      isAnimating = false;
+    }, FLIP_DURATION);
   }
 }
 
 function goToPage(idx) {
-  if (idx >= 0 && idx < TOTAL_PAGES) {
+  if (idx >= 0 && idx < TOTAL_PAGES && !isAnimating) {
     currentPage = idx;
     updateDisplay();
   }
