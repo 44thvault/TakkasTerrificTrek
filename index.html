@@ -12,6 +12,7 @@
        url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG14-Classic/DSEG14Classic-Bold.woff') format('woff');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -276,13 +277,15 @@ html, body {
   z-index: 200;
   background: none; border: 1px solid rgba(57,255,20,0.2);
   color: #39ff14;
-  font-family: 'DSEG14', 'Share Tech Mono', monospace;
-  font-size: 10px;
+  font-family: 'DSEG14', monospace;
+  font-size: 14px;
   letter-spacing: 3px;
-  padding: 6px 12px;
+  padding: 8px 16px;
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.85;
   transition: all 0.3s;
+  text-shadow: 0 0 8px rgba(57,255,20,0.3);
+  text-transform: uppercase;
 }
 .fs-btn:hover {
   opacity: 1;
@@ -513,6 +516,7 @@ function isMobile() {
 }
 
 function showHint() {
+  if (!isMobile()) return;
   const hint = document.getElementById('mobileHint');
   const hintText = document.getElementById('hintText');
   hintText.innerHTML = 'TAP ON THE SIDES<br>TO TURN PAGES';
