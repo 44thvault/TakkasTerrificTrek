@@ -6,11 +6,19 @@
 <title>CCRU — The Storybook</title>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Segment7Standard&display=swap');
+@font-face {
+  font-family: 'DSEG7';
+  src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --void: #0a0a0a;
-  --abyss: #050505;
+  --void: #000000;
+  --abyss: #000000;
   --glyph: #a0c8a0;
   --sigil: #2a7a3a;
   --flicker: #39ff14;
@@ -33,17 +41,11 @@ html, body {
 /* ── BACKGROUND SIGIL FIELD ── */
 .bg-layer {
   position: fixed; inset: 0; z-index: 0;
-  background:
-    radial-gradient(ellipse at 30% 70%, rgba(26,74,26,0.1) 0%, transparent 60%),
-    radial-gradient(ellipse at 70% 20%, rgba(42,122,58,0.06) 0%, transparent 50%),
-    var(--abyss);
+  background: #000000;
 }
 
 .bg-layer::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30Z' fill='none' stroke='rgba(57,255,20,0.025)' stroke-width='0.5'/%3E%3C/svg%3E");
-  animation: drift 120s linear infinite;
+  display: none;
 }
 
 @keyframes drift {
@@ -78,29 +80,7 @@ html, body {
   transform-style: preserve-3d;
 }
 
-/* Book shadow / glow */
-.book::after {
-  content: '';
-  position: absolute;
-  bottom: -25px; left: 5%; right: 5%;
-  height: 50px;
-  background: radial-gradient(ellipse, rgba(57,255,20,0.2), transparent 70%);
-  filter: blur(18px);
-  transition: opacity 0.6s;
-}
-
-.book::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 2px;
-  box-shadow:
-    0 0 15px rgba(57,255,20,0.12),
-    0 0 40px rgba(57,255,20,0.06),
-    inset 0 0 15px rgba(57,255,20,0.04);
-  pointer-events: none;
-  z-index: 0;
-}
+/* Book — no glow, clean edges */
 
 /* ── PAGES ── */
 .page {
@@ -245,9 +225,9 @@ html, body {
 }
 
 .page-indicator {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 15px;
-  letter-spacing: 5px;
+  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-size: 16px;
+  letter-spacing: 4px;
   color: var(--flicker);
   opacity: 0.9;
   margin-bottom: 12px;
@@ -340,8 +320,8 @@ html, body {
   z-index: 200;
   background: none; border: 1px solid rgba(57,255,20,0.2);
   color: #39ff14;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 9px;
+  font-family: 'DSEG7', 'Share Tech Mono', monospace;
+  font-size: 10px;
   letter-spacing: 3px;
   padding: 6px 12px;
   cursor: pointer;
@@ -357,7 +337,7 @@ html, body {
 /* ── KEYBOARD HINT ── */
 .key-hint {
   position: fixed; bottom: 8px; right: 15px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'DSEG7', 'Share Tech Mono', monospace;
   font-size: 9px;
   color: var(--sigil);
   opacity: 0.25;
